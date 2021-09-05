@@ -1,5 +1,7 @@
 **This is my project for _Tinkoff Fintech_**
 ====================================
+**Created by Andrey Volkov Alexandrovich. (Создано Волковым Андреем Александровичем)**
+-------------------------------------------------------------------------------------
 This application contains 4 categories, from where you can get gif's. This categories is:
 1. Latest (Последние)
 2. Hot (Горячие)
