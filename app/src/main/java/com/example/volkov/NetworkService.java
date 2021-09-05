@@ -22,6 +22,10 @@ public class NetworkService {
         return mInstance;
     }
 
+    /**
+     * Makes API methods callable.
+     * @return API, that could be used to get POJO objects.
+     */
     public JSONPlaceHolderApi getJSONApi() {
         return mRetrofit.create(JSONPlaceHolderApi.class);
     }

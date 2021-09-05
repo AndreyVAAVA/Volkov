@@ -5,9 +5,15 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.volkov.databinding.ActivityMainBinding;
 import com.google.android.material.tabs.TabLayout;
 
@@ -34,18 +40,32 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
         binding.forward.setOnClickListener(v -> {
             binding.progressCircular.setVisibility(ProgressBar.VISIBLE);
             binding.gifHolder.setVisibility(ImageView.INVISIBLE);
+            binding.forward.setEnabled(false);
             if (postNumber == posts.size()) {
                 handler.registerCallBack(this);
                 handler.load(postType, pageNumber);
             } else {
                 Glide.with(this).asGif()
                         .load(posts.get(postNumber).getGifLink())
+                        .listener(new RequestListener<GifDrawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                binding.progressCircular.setVisibility(View.INVISIBLE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                binding.progressCircular.setVisibility(View.INVISIBLE);
+                                return false;
+                            }
+                        })
                         .error(R.drawable.ic_baseline_cloud_queue_24)
                         .into(binding.gifHolder);
                 binding.textOfGif.setText(posts.get(postNumber).getDescription());
                 postNumber++;
-                binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
                 binding.gifHolder.setVisibility(ImageView.VISIBLE);
+                binding.forward.setEnabled(true);
             }
         });
         binding.back.setOnClickListener(v -> {
@@ -55,10 +75,22 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
                 postNumber--;
                 Glide.with(this).asGif()
                         .load(posts.get(postNumber).getGifLink())
+                        .listener(new RequestListener<GifDrawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                binding.progressCircular.setVisibility(View.INVISIBLE);
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                binding.progressCircular.setVisibility(View.INVISIBLE);
+                                return false;
+                            }
+                        })
                         .error(R.drawable.ic_baseline_cloud_queue_24)
                         .into(binding.gifHolder);
                 binding.textOfGif.setText(posts.get(postNumber).getDescription());
-                binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
                 binding.gifHolder.setVisibility(ImageView.VISIBLE);
             }
         });
@@ -94,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
 
     @Override
     public void preLoading(Post post) {
-
         if (post.getGifURL().equals("error")) {
             binding.gifHolder.setImageResource(R.drawable.ic_baseline_cloud_queue_24);
             binding.textOfGif.setText("Произошла ошибка при загрузке данных, проверьте подключение к сети");
@@ -115,17 +146,32 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
         if (postType != LinkParams.RANDOM) pageNumber++;
         posts.addAll(loadedPosts);
         if (posts.size() == postNumber) {
+            binding.progressCircular.setVisibility(View.INVISIBLE);
             binding.gifHolder.setImageResource(R.drawable.ic_baseline_cloud_queue_24);
             binding.textOfGif.setText("Произошла ошибка при загрузке данных, проверьте подключение к сети");
         } else {
             Glide.with(this).asGif()
                     .load(posts.get(postNumber).getGifLink())
+                    .listener(new RequestListener<GifDrawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                            binding.progressCircular.setVisibility(View.INVISIBLE);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                            binding.progressCircular.setVisibility(View.INVISIBLE);
+                            return false;
+                        }
+                    })
                     .error(R.drawable.ic_baseline_cloud_queue_24)
                     .into(binding.gifHolder);
+
             binding.textOfGif.setText(posts.get(postNumber).getDescription());
             postNumber++;
         }
         binding.gifHolder.setVisibility(ImageView.VISIBLE);
-        binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
+        binding.forward.setEnabled(true);
     }
 }

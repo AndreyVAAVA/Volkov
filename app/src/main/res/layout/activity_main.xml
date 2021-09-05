@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/categories"
         app:layout_constraintTop_toTopOf="parent"
@@ -31,7 +32,9 @@
             android:layout_height="wrap_content"
             android:text="@string/top"
             android:icon="@drawable/ic_baseline_favorite_24" />
+
     </com.google.android.material.tabs.TabLayout>
+
     <ImageView
         android:id="@+id/gif_holder"
         android:layout_width="match_parent"

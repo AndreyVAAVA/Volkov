@@ -8,4 +8,5 @@ import lombok.Value;
 public class PostOptimized {
     public String gifLink;
     public String description;
+    public String previewURL;
 }
