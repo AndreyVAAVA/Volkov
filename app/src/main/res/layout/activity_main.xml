@@ -49,8 +49,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/forward"
-        android:indeterminateDrawable="@drawable/spinner_ring"
-        android:visibility="invisible"/>
+        android:indeterminateDrawable="@drawable/spinner_ring" />
 
     <TextView
         android:id="@+id/text_of_gif"
