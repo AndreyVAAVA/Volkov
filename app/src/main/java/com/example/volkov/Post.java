@@ -4,21 +4,21 @@ import lombok.Data;
 
 @Data
 public class Post {
-    private int id;
-    private String description;
-    private int votes;
-    private String author;
-    private String date;
-    private String gifURL;
-    private int gifSize;
-    private String previewURL;
-    private String videoURL;
-    private String videoPath;
-    private long videoSize;
-    private String type;
-    private String width;
-    private String height;
-    private int commentsCount;
-    private long fileSize;
-    private boolean canVote;
+    int id;
+    String description;
+    int votes;
+    String author;
+    String date;
+    String gifURL;
+    int gifSize;
+    String previewURL;
+    String videoURL;
+    String videoPath;
+    long videoSize;
+    String type;
+    String width;
+    String height;
+    int commentsCount;
+    long fileSize;
+    boolean canVote;
 }

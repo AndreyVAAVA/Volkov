@@ -9,8 +9,8 @@ import retrofit2.http.Query;
 
 public interface JSONPlaceHolderApi {
     @GET("/{section}/{pageNumber}")
-    public Call<List<Posts>> getPostsWithType(@Path("section") String section, @Path("pageNumber") String pageNumber, @Query("json") boolean isJson);
+    public Call<Posts> getPostsWithType(@Path("section") String section, @Path("pageNumber") int pageNumber, @Query("json") boolean isJson);
 
     @GET("/random")
-    public Call<RandomPost> getRandomPost(@Query("json") boolean isJson);
+    public Call<Post> getRandomPost(@Query("json") boolean isJson);
 }

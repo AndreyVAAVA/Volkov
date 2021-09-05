@@ -1,6 +1,5 @@
 package com.example.volkov;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.net.ConnectivityManager;
@@ -14,9 +13,13 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.volkov.databinding.ActivityMainBinding;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -27,7 +30,15 @@ import static android.content.ContentValues.TAG;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private boolean isLost = false;
-    private String selectCategory = "Latest";
+    private LinkParams postType = LinkParams.LATEST;
+    private int postNumber = 0;
+    private int pageNumber = 0;
+    private int pageNumberLatest = 0;
+    private int pageNumberTop = 0;
+    private int pageNumberHot = 0;
+    private boolean isCategoryWorking = true;
+    private ArrayList<PostOptimized> posts = new ArrayList<>();
+    JSONPlaceHolderApi api = NetworkService.getInstance().getJSONApi();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,25 +47,70 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
         binding.forward.setOnClickListener(v -> {
-            binding.gifHolder.setVisibility(ImageView.INVISIBLE);
             binding.progressCircular.setVisibility(ProgressBar.VISIBLE);
-            Glide.with(this).asBitmap().load("https://static.devli.ru/public/images/previews/202009/3c2dbbe9-da67-4df3-8790-0fa3d995ceeb.jpg").into(binding.gifHolder);
+            binding.gifHolder.setVisibility(ImageView.INVISIBLE);
+            if (!isCategoryWorking && postNumber == posts.size()-1) {
+                isCategoryWorking = true;
+                Snackbar snackbar = Snackbar.make(view, "Эта категория не работает. Была загружена рандомная gif", Snackbar.LENGTH_SHORT);
+                snackbar.setAction("Close", v1 -> snackbar.dismiss()).show();
+                getNewPosts();
+            }
+            if (postNumber == posts.size() - 4) getNewPosts();
+            if (postNumber == posts.size()) {
+                binding.gifHolder.setImageResource(R.drawable.ic_baseline_cloud_queue_24);
+                binding.textOfGif.setText("Произошла ошибка при загрузке данных, проверьте подключение к сети");
+                getNewPosts();
+            } else {
+                Glide.with(this).asGif()
+                        .load(posts.get(postNumber).getGifLink())
+                        .error(R.drawable.ic_baseline_cloud_queue_24)
+                        .into(binding.gifHolder);
+                binding.textOfGif.setText(posts.get(postNumber).getDescription());
+                if (!isCategoryWorking) {
+
+                }
+                postNumber++;
+            }
+
+            binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
             binding.gifHolder.setVisibility(ImageView.VISIBLE);
-            Snackbar.make(v, "forward", Snackbar.LENGTH_SHORT).show();
+            //Snackbar.make(v, "forward", Snackbar.LENGTH_SHORT).show();
         });
         binding.back.setOnClickListener(v -> {
-            Glide.with(this).asGif()
-                    .load("https://static.devli.ru/public/images/gifs/202009/3c2dbbe9-da67-4df3-8790-0fa3d995ceeb.gif")
-                    .error(R.drawable.ic_baseline_cloud_queue_24)
-                    .into(binding.gifHolder);
-            binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
-            //binding.gifHolder.setVisibility(ImageView.VISIBLE);
-            Snackbar.make(v, "back", Snackbar.LENGTH_SHORT).show();
+            if (postNumber > 0) {
+                binding.progressCircular.setVisibility(ProgressBar.VISIBLE);
+                binding.gifHolder.setVisibility(ImageView.INVISIBLE);
+                postNumber--;
+                Glide.with(this).asGif()
+                        .load(posts.get(postNumber).getGifLink())
+                        .error(R.drawable.ic_baseline_cloud_queue_24)
+                        .into(binding.gifHolder);
+                binding.textOfGif.setText(posts.get(postNumber).getDescription());
+                binding.progressCircular.setVisibility(ProgressBar.INVISIBLE);
+                binding.gifHolder.setVisibility(ImageView.VISIBLE);
+            }
+            //Snackbar.make(v, "back", Snackbar.LENGTH_SHORT).show();
         });
         binding.categories.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-
+                String tabText = tab.getText().toString();
+                if (postType == LinkParams.LATEST) pageNumberLatest = pageNumber;
+                else if (postType == LinkParams.HOT) pageNumberLatest = pageNumber;
+                else pageNumberHot = pageNumber;
+                if (tabText.equals(getString(R.string.latest))) {
+                    postType = LinkParams.LATEST;
+                    pageNumber = pageNumberLatest;
+                }
+                else if (tabText.equals(getString(R.string.top))) {
+                    postType = LinkParams.TOP;
+                    pageNumber = pageNumberTop;
+                }
+                else {
+                    postType = LinkParams.HOT;
+                    pageNumber = pageNumberHot;
+                }
+                Snackbar.make(view, postType.getType(), Snackbar.LENGTH_SHORT).show();
             }
 
             @Override
@@ -67,54 +123,48 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        ConnectivityManager cm =
-                (ConnectivityManager)this.getSystemService(CONNECTIVITY_SERVICE);
-        cm.registerDefaultNetworkCallback(new ConnectivityManager.NetworkCallback() {
-            @Override
-            public void onAvailable(Network network) {
-                Log.e(TAG, "The default network is now: " + network);
-                if (isLost) {
-                    Snackbar.make(view, "Connection established", Snackbar.LENGTH_LONG).show();
-                    isLost = false;
-                }
-            }
+        //getNewPosts();
+    }
 
-            @Override
-            public void onLost(Network network) {
-                Log.e(TAG, "The application no longer has a default network. The last default network was " + network);
-                isLost = true;
-            }
+    public void getNewPosts() {
+         if (postType == LinkParams.RANDOM) {
+             api.getRandomPost(true).enqueue(new Callback<Post>() {
+                 @Override
+                 public void onResponse(Call<Post> call, Response<Post> response) {
+                     Post post = response.body();
+                     posts.add(PostOptimized.builder().gifLink(post.getGifURL()).description(post.getDescription()).build());
+                 }
 
-            @Override
-            public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
-                Log.e(TAG, "The default network changed capabilities: " + networkCapabilities);
-            }
+                 @Override
+                 public void onFailure(Call<Post> call, Throwable t) {
+                     Log.d(TAG, "Error while getting JSON");
+                 }
+             });
+         } else {
+             Call<Posts> postsWithType = api.getPostsWithType(postType.getType(), pageNumber, true);
+             postsWithType.enqueue(new Callback<Posts>() {
+                 @Override
+                 public void onResponse(Call<Posts> call, Response<Posts> response) {
+                     pageNumber++;
+                     List<Post> themAll = response.body().getResult();
+                     if (themAll.size() == 0) {
+                         LinkParams perm = postType;
+                         postType = LinkParams.RANDOM;
+                         getNewPosts();
+                         isCategoryWorking = false;
+                         postType = perm;
+                         pageNumber--;
+                     }
+                     themAll.forEach(x -> {
+                         posts.add(PostOptimized.builder().gifLink(x.getGifURL()).description(x.getDescription()).build());
+                     });
+                 }
 
-            @Override
-            public void onLinkPropertiesChanged(Network network, LinkProperties linkProperties) {
-                Log.e(TAG, "The default network changed link properties: " + linkProperties);
-            }
-        });
-        Glide.with(this).asGif()
-                .load("http://static.devli.ru/public/images/gifs/201303/db650743-ae9a-4639-9807-3e3de92f36da.gif")
-                .error(R.drawable.ic_baseline_cloud_queue_24)
-                .into(binding.gifHolder);
-        binding.textOfGif.setText("Crazy stuff");
-        NetworkService.getInstance()
-                .getJSONApi()
-                .getRandomPost(true)
-                .enqueue(new Callback<RandomPost>() {
-                    @Override
-                    public void onResponse(Call<RandomPost> call, Response<RandomPost> response) {
-                        RandomPost post = response.body();
-                        Snackbar.make(view, post.getGifURL(), Snackbar.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(Call<RandomPost> call, Throwable t) {
-                        Snackbar.make(view, "Error", Snackbar.LENGTH_SHORT).show();
-                    }
-                });
-
+                 @Override
+                 public void onFailure(Call<Posts> call, Throwable t) {
+                     Log.d(TAG, "Error while getting JSON");
+                 }
+             });
+         }
     }
 }
