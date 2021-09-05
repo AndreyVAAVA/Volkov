@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
                 String tabText = tab.getText().toString();
                 if (postType == LinkParams.LATEST) pageNumberLatest = pageNumber;
                 else if (postType == LinkParams.TOP) pageNumberTop = pageNumber;
-                else pageNumberHot = pageNumber;
+                else if (postType == LinkParams.HOT) pageNumberHot = pageNumber;
                 if (tabText.equals(getString(R.string.latest))) {
                     postType = LinkParams.LATEST;
                     pageNumber = pageNumberLatest;
@@ -109,9 +109,11 @@ public class MainActivity extends AppCompatActivity implements CallbackHandler.C
                     postType = LinkParams.TOP;
                     pageNumber = pageNumberTop;
                 }
-                else {
+                else if (tabText.equals(getString(R.string.hot))) {
                     postType = LinkParams.HOT;
                     pageNumber = pageNumberHot;
+                } else {
+                    postType = LinkParams.RANDOM;
                 }
             }
             @Override

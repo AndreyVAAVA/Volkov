@@ -3,4 +3,5 @@
     <string name="latest">Последние</string>
     <string name="hot">Горячие</string>
     <string name="top">Лучшие</string>
+    <string name="random">Рандомные</string>
 </resources>
