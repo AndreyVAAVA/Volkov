@@ -1,4 +1,4 @@
-**This is my project for _Tinkoff_**
+**This is my project for _Tinkoff Fintech_**
 ====================================
 This application contains 4 categories, from where you can get gif's. This categories is:
 1. Latest (Последние)
